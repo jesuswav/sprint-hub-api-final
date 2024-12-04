@@ -19,3 +19,28 @@ exports.obtenerProyectos = async (req, res) => {
     })
   res.json(proyectos)
 }
+
+exports.obtenerProyectoPorId = async (req, res) => {
+  const { id } = req.params // Extraemos el ID del proyecto desde la URL
+
+  try {
+    // Buscar el proyecto por ID y poblar tareas y miembros
+    const proyecto = await Proyecto.findById(id)
+      .populate('tareas') // Poblar tareas relacionadas
+      .populate('miembros', 'nombre email rol') // Poblar miembros con solo campos relevantes
+      .exec()
+
+    // Si el proyecto no existe, devolver un error 404
+    if (!proyecto) {
+      return res.status(404).json({ message: 'Proyecto no encontrado' })
+    }
+
+    // Devolver el proyecto encontrado
+    res.status(200).json(proyecto)
+  } catch (error) {
+    console.error(error)
+
+    // Manejo de errores, como un ID malformado
+    res.status(500).json({ message: 'Error al obtener el proyecto' })
+  }
+}
